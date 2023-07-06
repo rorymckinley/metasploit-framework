@@ -252,6 +252,7 @@ class RbMysql
       [249, "gb18030",  "gb18030_bin",              false],
       [250, "gb18030",  "gb18030_unicode_520_ci",   false],
       [254, "utf8",     "utf8_general_cs",          false],
+      [255, "utf8mb4",  "utf8mb4_0900_ai_ci",       true ],
     ]
 
     # @private

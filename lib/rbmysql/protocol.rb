@@ -188,6 +188,7 @@ class RbMysql
         @charset.encoding       # raise error if unsupported charset
       end
       netpw = encrypt_password passwd, init_packet.scramble_buff
+      binding.pry
       write AuthenticationPacket.serialize(@client_flags, 1024**3, @charset.number, user, netpw, db)
       raise ProtocolError, 'The old style password is not supported' if read.to_s == "\xfe"
       set_state :READY

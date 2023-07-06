@@ -91,6 +91,7 @@ class MetasploitModule < Msf::Auxiliary
         end
 
       else
+          binding.pry
         vprint_error "#{target} - Unsupported target version of MySQL detected. Skipping."
       end
     rescue ::Rex::ConnectionError, ::EOFError => e
