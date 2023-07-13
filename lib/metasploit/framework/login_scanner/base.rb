@@ -228,6 +228,7 @@ module Metasploit
                 sleep_between_attempts
               end
 
+              puts 'RORY BEFORE AL'
               result = attempt_login(credential)
               result.freeze
 
@@ -252,6 +253,7 @@ module Metasploit
                 end
               end
             rescue => e
+              puts "RORY - OPEN ENDED RESCUE #{e.backtrace.join("\n")}"
               elog('Attempt may not yield a result', error: e)
             end
             nil

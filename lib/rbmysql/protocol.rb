@@ -172,6 +172,7 @@ class RbMysql
     # === Exception
     # ProtocolError :: The old style password is not supported
     def authenticate(user, passwd, db, flag, charset)
+      puts "RORY - AUTHENTICATE"
       check_state :INIT
       @authinfo = [user, passwd, db, flag, charset]
       reset
@@ -187,8 +188,9 @@ class RbMysql
         @charset = Charset.by_number(init_packet.server_charset)
         @charset.encoding       # raise error if unsupported charset
       end
+      puts "RORY - BEFORE ENCRYPT"
       netpw = encrypt_password passwd, init_packet.scramble_buff
-      binding.pry
+      puts "RORY - CHARSET #{@charset.number}"
       write AuthenticationPacket.serialize(@client_flags, 1024**3, @charset.number, user, netpw, db)
       raise ProtocolError, 'The old style password is not supported' if read.to_s == "\xfe"
       set_state :READY
@@ -571,9 +573,12 @@ class RbMysql
     # === Return
     # [String] encrypted password
     def encrypt_password(plain, scramble)
+      puts "RORY - PLAIN #{plain}"
       return "" if plain.nil? or plain.empty?
       hash_stage1 = Digest::SHA1.digest plain
       hash_stage2 = Digest::SHA1.digest hash_stage1
+      puts "RORY - BEFORE H STAGE"
+      p hash_stage1.unpack("C*")
       return hash_stage1.unpack("C*").zip(Digest::SHA1.digest(scramble+hash_stage2).unpack("C*")).map{|a,b| a^b}.pack("C*")
     end
 
