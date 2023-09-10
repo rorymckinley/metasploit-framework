@@ -198,4 +198,84 @@ RSpec.describe 'SSH Login Check Scanner' do
       end
     end
   end
+
+  describe '#run_host' do
+    # let(:datastore) { Msf::ModuleDataStoreWithFallbacks.new(subject) }
+    let(:bruteforce_speed) { 3 }
+    let(:credential) do
+      Metasploit::Framework::Credential.new(private: password, public: username)
+    end
+    let(:credential_collection) do
+      instance_double(Metasploit::Framework::CredentialCollection, each: nil, empty?: false)
+    end
+    let(:gather_proof) { false }
+    let(:ip) { '10.10.10.10' }
+    let(:password) { 'secret' }
+    let(:proof) { 'this is the proof' }
+    let(:proxies) { 'http://127.0.0.1/6666' }
+    let(:result) do
+      Metasploit::Framework::LoginScanner::Result.new(
+        credential: credential,
+        proof: proof
+      )
+    end
+    let(:rport) { 22 }
+    let(:scanner) do
+      instance_double(Metasploit::Framework::LoginScanner::SSH).tap do |s|
+        allow(s).to receive(:scan!).and_yield(result)
+        allow(s).to receive(:ssh_socket).and_return(socket)
+      end
+    end
+    let(:socket) { instance_double(Net::SSH::Connection::Session, closed?: nil, close: nil) }
+    let(:ssh_timeout) { 15 }
+    let(:stop_on_success) { true }
+    let(:username) { 'root' }
+
+    before(:each) do
+      subject.datastore['BRUTEFORCE_SPEED'] = bruteforce_speed
+      subject.datastore['GatherProof'] = gather_proof
+      subject.datastore['PASSWORD'] = password
+      subject.datastore['Proxies'] = proxies
+      subject.datastore['RPORT'] = rport
+      subject.datastore['SSH_TIMEOUT'] = ssh_timeout
+      subject.datastore['STOP_ON_SUCCESS'] = stop_on_success
+      subject.datastore['USERNAME'] = username
+
+      allow(subject).to receive(:build_credential_collection).and_return(credential_collection)
+    end
+
+    it 'creates a credential collection' do
+      expect(subject).to receive(:build_credential_collection)
+        .with(
+          username: username,
+          password: password
+        )
+        .and_return(credential_collection)
+
+      subject.run_host(ip)
+    end
+
+    it 'instantiates an instance of LoginScanner::SSH' do
+      expect(Metasploit::Framework::LoginScanner::SSH).to receive(:new).with(
+        host: ip,
+        port: rport,
+        cred_details: credential_collection,
+        proxies: proxies,
+        stop_on_success: stop_on_success,
+        bruteforce_speed: bruteforce_speed,
+        connection_timeout: ssh_timeout,
+        framework: subject.class.framework,
+        framework_module: subject,
+        skip_gather_proof: !gather_proof
+      ).and_return(scanner)
+      # p subject.datastore
+      subject.run_host(ip)
+      # require 'pry'
+      # binding.pry
+      # expect(Metasploit::Framework::LoginScanner::SSH)
+      #   .to receive(:new)
+      #   .with(
+      #   )
+    end
+  end
 end
